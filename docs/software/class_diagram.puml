@@ -1,0 +1,113 @@
+@startuml
+class       Simulation 
+class       SofaScene
+class       NeedleAnimationController
+class       HandAnimationController 
+
+class       NeedleMechanicalObjectController 
+class       PositionTracker
+class       NeedlePositionTransformer
+
+class       HandColorController
+class       PressureTracker
+class       PressureToColorTransformer
+
+abstract    AbstractPortControllerSingleton
+interface   AbstractPortParser
+class       BarPortParser
+class       Bar9600COM3PortControllerSingleton 
+interface   AbstractPortReader
+class       Port9600COM3Reader
+
+
+class Simulation {
+    void exec()
+}
+
+class SofaScene {
+    void exec()
+}
+
+class NeedleAnimationController {
+    void onAnimateBeginEvent(SofaEvent event)
+}
+
+class NeedleMechanicalObjectController {
+    void setPosition(SofaPosition position)
+}
+
+class PositionTracker {
+    TrackingPosition getPosition()
+}
+
+abstract AbstractPortControllerSingleton {
+    Dict getData()
+}
+
+class Bar9600COM3PortControllerSingleton {
+    Dict getData()
+}
+
+interface AbstractPortParser {
+    Dict parse(str rawData)
+}
+
+interface AbstractPortReader {
+    str read()
+}
+
+class Port9600COM3Reader {
+    str read()
+}
+
+class BarPortParser {
+    Dict parse(str rawData)
+}
+
+class NeedlePositionTransformer {
+    SofaPosition getDefaultPosition()
+    SofaPosition transformTrackerToSofaPosition(
+         TrackingPosition trackingPosition)
+}
+
+class HandAnimationController {
+    void onAnimateBeginEvent(SofaEvent event)
+}
+
+class PressureTracker {
+    TrackingPressure getPressure()
+}
+
+class PressureToColorTransformer {
+    SofaColor getColorFromGradient(float colorCoeff)
+    SofaColor transformPressureToColor(
+            TrackingPressure pressure)
+}
+
+class HandColorController {
+    void setColor(SofaColor color)
+}
+
+
+Simulation *-- SofaScene
+SofaScene ..> NeedleAnimationController : "use"
+SofaScene ..> HandAnimationController : "use"
+
+NeedleAnimationController *-- NeedleMechanicalObjectController
+NeedleAnimationController *-- PositionTracker
+NeedleAnimationController *-- NeedlePositionTransformer
+
+HandAnimationController *-- PressureTracker
+HandAnimationController *-- PressureToColorTransformer
+HandAnimationController *-- HandColorController
+
+PositionTracker *-- AbstractPortControllerSingleton
+PressureTracker *-- AbstractPortControllerSingleton
+AbstractPortControllerSingleton <|-- Bar9600COM3PortControllerSingleton
+AbstractPortControllerSingleton *-- AbstractPortReader
+AbstractPortControllerSingleton *-- AbstractPortParser
+
+AbstractPortReader <|.. Port9600COM3Reader
+AbstractPortParser <|.. BarPortParser
+
+@enduml

@@ -1,0 +1,66 @@
+@startuml
+
+!pragma teoz true
+box Workstation #F0F0F0
+    box SOFA Framework #F7F7F7
+        participant "SOFA Framework" as Sofa
+    end box
+
+    box Simulation Component #F7F7F7
+        participant     NeedleAnimationController
+        participant     PositionTracker
+        participant     NeedlePositionTransformer
+        participant     NeedleMechanicalObjectController
+
+        participant     Bar9600COM3PortControllerSingleton
+        participant     Port9600COM3Reader
+        participant     BarPortParser
+    end box
+
+    queue "Serial Port\nConnection" as port
+
+    box Sensor Handler Component #F7F7F7
+        participant "sensor_reader" as Arduino
+    end box
+end box
+
+boundary "BNO055\nMotion Sensor" as motion
+boundary "VL6180X ToF\nDistance Sensor" as distance
+
+activate Arduino
+activate port
+activate motion
+activate distance
+activate Sofa
+
+Arduino -> motion: read
+return data
+
+Arduino -> distance: read
+return data
+Arduino -> port: write\nmotion and distance\nsensors data
+
+Sofa -> NeedleAnimationController: onAnimateBeginEvent(event)
+activate NeedleAnimationController
+
+NeedleAnimationController -> PositionTracker ++: getPosition()
+    PositionTracker -> Bar9600COM3PortControllerSingleton ++: getData()
+        Bar9600COM3PortControllerSingleton -> Port9600COM3Reader ++: read()
+            Port9600COM3Reader -> port: readline()
+            Port9600COM3Reader <-- port: rawData
+        return rawData
+        Bar9600COM3PortControllerSingleton -> BarPortParser ++: parse(rawData)
+        return parsedData
+    return parsedData
+return trackingPosition
+
+NeedleAnimationController -> NeedlePositionTransformer ++: transformTrackerToSofaPosition(trackingPosition)
+return sofaPosition
+
+NeedleAnimationController -> NeedleMechanicalObjectController ++: setPosition(sofaPosition)
+    NeedleMechanicalObjectController -> Sofa: set needle position
+return 
+
+deactivate NeedleAnimationController
+
+@enduml

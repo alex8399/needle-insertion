@@ -1,0 +1,61 @@
+@startuml
+
+!pragma teoz true
+box Workstation #F0F0F0
+    box SOFA Framework #F7F7F7
+        participant "SOFA Framework" as Sofa
+    end box
+
+    box Simulation Component #F7F7F7
+        participant       HandAnimationController 
+        participant       PressureTracker
+        participant       PressureToColorTransformer
+        participant       HandColorController
+
+        participant     Bar9600COM3PortControllerSingleton
+        participant     Port9600COM3Reader
+        participant     BarPortParser
+    end box
+
+    queue "Serial Port\nConnection" as port
+
+    box Sensor Handler Component #F7F7F7
+        participant "sensor_reader" as Arduino
+    end box
+end box
+
+boundary "FSR (RP-S40-ST)\nPressure Sensor" as pressure
+
+activate Arduino
+activate port
+activate pressure
+activate Sofa
+
+Arduino -> pressure: read
+return data
+Arduino -> port: write pressure\nsensor data
+
+Sofa -> HandAnimationController: onAnimateBeginEvent(event)
+activate HandAnimationController
+
+HandAnimationController -> PressureTracker ++: getPressure()
+    PressureTracker -> Bar9600COM3PortControllerSingleton ++: getData()
+        Bar9600COM3PortControllerSingleton -> Port9600COM3Reader ++: read()
+            Port9600COM3Reader -> port: readline()
+            Port9600COM3Reader <-- port: rawData
+        return rawData
+        Bar9600COM3PortControllerSingleton -> BarPortParser ++: parse(rawData)
+        return parsedData
+    return parsedData
+return pressure
+
+HandAnimationController -> PressureToColorTransformer ++: transformPressureToColor(pressure)
+return color
+
+HandAnimationController -> HandColorController ++: setColor(color)
+    HandColorController -> Sofa: set hand color
+return 
+
+deactivate HandAnimationController
+
+@enduml
