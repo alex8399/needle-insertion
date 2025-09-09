@@ -1,4 +1,4 @@
-# Needle Insertion Trainer with Digital Twin
+# Embedded System Needle Insertion Trainer (with Digital Twin)
 
 **Needle insertion trainer** is a low-cost trainer consisting of a needle, a dummy patient’s lower arm and their digital twins. It allows medical trainees to practice needle insertion and blood-draw techniques while receiving immediate feedback. The project is described in detail in the [presentation](/presentation/presentation.pdf).
 
